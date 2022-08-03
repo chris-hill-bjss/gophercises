@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"gophercises/internal/problemposer"
 	"gophercises/internal/problemreader"
+	"gophercises/internal/quizrunner"
 )
 
 func main() {
@@ -13,7 +13,9 @@ func main() {
 
 	problems := inputToProblems(content)
 
-	results := runQuiz(problems)
+	quizRunner := quizrunner.NewQuizRunner(problems, 30)
+
+	results := quizRunner.Run()
 
 	score := calculateScore(results)
 
@@ -31,24 +33,6 @@ func readInputFile(filename string) []byte {
 
 func inputToProblems(content []byte) map[string]int {
 	return problemreader.Read(content)
-}
-
-func runQuiz(problems map[string]int) map[string]bool {
-	problemChannel := make(chan problemposer.Problem)
-	answerChannel := make(chan bool)
-
-	problemposer.Initialise(problemChannel, answerChannel)
-
-	results := make(map[string]bool)
-	for question, answer := range problems {
-		problemChannel <- problemposer.Problem{Question: question, Answer: answer}
-
-		correct := <-answerChannel
-
-		results[question] = correct
-	}
-
-	return results
 }
 
 func calculateScore(results map[string]bool) int {

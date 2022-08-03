@@ -14,7 +14,10 @@ type Problem struct {
 	Answer   int
 }
 
-func Initialise(problemChannel <-chan Problem, answerChannel chan<- bool) {
+func Initialise(
+	problemChannel <-chan Problem,
+	answerChannel chan<- bool,
+) {
 	go func() {
 		for problem := range problemChannel {
 			fmt.Println(problem.Question)

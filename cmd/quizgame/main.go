@@ -34,17 +34,18 @@ func inputToProblems(content []byte) map[string]int {
 }
 
 func runQuiz(problems map[string]int) map[string]bool {
-	questionChannel := make(chan string)
-	answerChannel := make(chan int)
-	problemposer.Initialise(questionChannel, answerChannel)
+	problemChannel := make(chan problemposer.Problem)
+	answerChannel := make(chan bool)
+
+	problemposer.Initialise(problemChannel, answerChannel)
 
 	results := make(map[string]bool)
 	for question, answer := range problems {
-		questionChannel <- question
+		problemChannel <- problemposer.Problem{Question: question, Answer: answer}
 
-		guess := <-answerChannel
+		correct := <-answerChannel
 
-		results[question] = guess == answer
+		results[question] = correct
 	}
 
 	return results

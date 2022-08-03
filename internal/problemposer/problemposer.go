@@ -3,21 +3,41 @@ package problemposer
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 )
 
-func Initialise(questionChannel <-chan string, answerChannel chan<- int) {
+type Problem struct {
+	Question string
+	Answer   int
+}
+
+func Initialise(problemChannel <-chan Problem, answerChannel chan<- bool) {
 	go func() {
-		for question := range questionChannel {
-			fmt.Println(question)
+		for problem := range problemChannel {
+			fmt.Println(problem.Question)
 			reader := bufio.NewReader(os.Stdin)
 
-			input, _ := reader.ReadString('\n')
-			guess, _ := strconv.Atoi(strings.TrimSuffix(input, "\r\n"))
+			input, err := reader.ReadString('\n')
+			if err != nil {
+				log.Panic("failed reading user input")
+			}
 
-			answerChannel <- guess
+			guess, ok := sanitiseInput(input)
+
+			answerChannel <- ok && (guess == problem.Answer)
 		}
 	}()
+}
+
+func sanitiseInput(input string) (int, bool) {
+	guess, err := strconv.Atoi(strings.TrimSuffix(strings.TrimSpace(input), "\r\n"))
+
+	if err != nil {
+		return 0, false
+	}
+
+	return guess, true
 }
